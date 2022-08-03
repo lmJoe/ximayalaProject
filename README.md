@@ -1,4 +1,5 @@
 # ximayalaProject
+ERROR Invariant Violation: ViewPropTypes has been removed from React Native
 由于高版本react-native已启用ViewPropTypes，使用打补丁方法解决当前问题
 1.npm install deprecated-react-native-prop-types 或者 yarn add deprecated-react-native-prop-types
 2.更改node_modules\react-native\index.js文件中436行后的代码
