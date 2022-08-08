@@ -52,42 +52,29 @@ class Home extends React.Component<IProps>{
             type:'home/fetchChannels',
         })
     }
-    onPress = () => {
-        const {navigation} = this.props;
-        /**使用navigate()方法进行跳转 */
-        navigation.navigate("Detail",{
-            id:100,
-        });
+    //接收从IChannel子组件传递来一个类型为IChannel的参数data
+    onPress = (data:IChannel) => {
+        console.log('data值',data);
     }  
-    handleadd = () => {
-        const { dispatch } = this.props;
-        //调用到在models文件夹中home文件中的add方法
-        /**如何找到：通过 namespace+调用的函数方法名称*/
-        dispatch({
-            type:'home/add',
-            payload:{
-                num:10,
-            }
-        })
-    } 
-    asyncAdd = () => {
-        const { dispatch } = this.props;
-        //调用到在models文件夹中home文件中的add方法
-        /**如何找到：通过 namespace+调用的函数方法名称*/
-        dispatch({
-            type:'home/asyncAdd',
-            payload:{
-                num:2,
-            }
-        })
-    } 
+    /**
+     * keyExtractor函数作用帮助ChannelItme组件生成一个不重复的key,
+     * key的作用能够区分遍历出来的每一个channleItem组件，在刷新的时候就能确定变化的位置，
+     * 减少重新渲染的性能消耗
+     * 
+     */
+    keyExtractor = (item:IChannel) => {
+        return item.id;
+    }
     /**
      * renderItem可以接收一个参数，参数类型为ListRenderItemInfo
      * 并且要给这个参数传入一个泛型，如ListRenderItemInfo<IChannel>
      * 这个泛型定义的就是这个{item}:ListRenderItemInfo<IChannel>对象里面的一个属性item属性
      */
     _renderItem = ({item}:ListRenderItemInfo<IChannel>) => {
-        return <ChannelItem data={item}/>
+        /**由于channelItem组件中除了data 还接收了一个onPress组件
+         * 因此次数除了传递data,还有一个onPress函数
+         */
+        return <ChannelItem data={item} onPress={this.onPress}/>
     }
     /**使用get */
     get header(){
@@ -99,6 +86,7 @@ class Home extends React.Component<IProps>{
             </View>
         )
     }
+    
     render (){
         const {channels} = this.props;
         /**
@@ -106,7 +94,12 @@ class Home extends React.Component<IProps>{
          * ListHeaderComponent属性可以接收函数,class,组件
          */
         return (
-            <FlatList ListHeaderComponent={this.header} data={channels} renderItem={this._renderItem}/>
+            <FlatList 
+                ListHeaderComponent={this.header} 
+                data={channels} 
+                renderItem={this._renderItem}
+                keyExtractor = {this.keyExtractor} //keyExtractor接收一个函数
+            />
         )
     }
 }
