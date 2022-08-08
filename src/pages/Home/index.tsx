@@ -1,11 +1,13 @@
 import React from 'react';
-import { View } from 'react-native';
+import { View,FlatList, ListRenderItemInfo } from 'react-native';
 import { RootStackNavigation } from '../../navigator';
 /**使用connect获取到models文件中home文件中定义的num */
 import { connect, ConnectedProps } from 'react-redux';
 import { RootState } from '@/models/index';
 import WCarousel from './Carousel';
 import Guess from './Guess';
+import ChannelItem from './ChannelItem';
+import { IChannel } from '@/models/home';
 
 /**
  * connect本身是一个函数，可以接收一个函数，同时也返回一个函数，用来帮我们
@@ -19,10 +21,14 @@ import Guess from './Guess';
  * 拿到store,所以从home组件中可以拿到仓库，所以connect就能知道store里面的state属性
  * state类型就是在models里index中定义的RootState的类别
 */
-const mapStateToProps = ({home,loading}:RootState) =>({
-    carousels:home.carousels,//carousels为models文件夹中home中的carousels值
-    loading:loading.effects['home/fetchCarousels'],//次数的effects为models文件夹中home文件的effects对象里所有定义的方法
-})
+const mapStateToProps = ({home,loading}:RootState) =>{
+    return {
+        carousels:home.carousels,//carousels为models文件夹中home中的carousels值即获取到轮播列表的数组
+        channels:home.channels,//channels为models文件中home中的channels值即获取到首页列表的数组
+        loading:loading.effects['home/fetchCarousels'],//次数的effects为models文件夹中home文件的effects对象里所有定义的方法
+    }
+    
+}
 
 const connector = connect(mapStateToProps);
 /**通过ConnectProps方法得到导入对象的类型 */
@@ -40,7 +46,10 @@ class Home extends React.Component<IProps>{
     componentDidMount(){
         const { dispatch } = this.props;
         dispatch({
-            type:'home/fetchCarousels'
+            type:'home/fetchCarousels',
+        });
+        dispatch({
+            type:'home/fetchChannels',
         })
     }
     onPress = () => {
@@ -72,16 +81,32 @@ class Home extends React.Component<IProps>{
             }
         })
     } 
-    render (){
+    /**
+     * renderItem可以接收一个参数，参数类型为ListRenderItemInfo
+     * 并且要给这个参数传入一个泛型，如ListRenderItemInfo<IChannel>
+     * 这个泛型定义的就是这个{item}:ListRenderItemInfo<IChannel>对象里面的一个属性item属性
+     */
+    _renderItem = ({item}:ListRenderItemInfo<IChannel>) => {
+        return <ChannelItem data={item}/>
+    }
+    /**使用get */
+    get header(){
         const {carousels} = this.props;
-        /**
-         * this.props;在此处使用this.props可以获取从其他组件传过来的参数
-         */
         return (
             <View>
                 <WCarousel data={carousels}/>
                 <Guess />
             </View>
+        )
+    }
+    render (){
+        const {channels} = this.props;
+        /**
+         * this.props;在此处使用this.props可以获取从其他组件传过来的参数
+         * ListHeaderComponent属性可以接收函数,class,组件
+         */
+        return (
+            <FlatList ListHeaderComponent={this.header} data={channels} renderItem={this._renderItem}/>
         )
     }
 }

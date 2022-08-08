@@ -5,6 +5,9 @@ import axios from 'axios';
 const CAROUSEL_URL = '/mock/11/xmlaApi/carousel';
 //猜你喜欢接口
 const GUESS_URL = '/mock/11/xmlaApi/guess';
+//首页列表
+const CHANNEL_URL = '/mock/11/xmlaApi/channel';
+
 /**定义一个接受轮播图参数的入口 并导出这个参数以便于其他页面调用此参数*/
 export interface ICarousel {
     id:string;
@@ -12,14 +15,24 @@ export interface ICarousel {
     color:[string,string];
 }
 /**定义一个接收猜你喜欢内容参数的入口，并导出这个参数以便于其他页面调用此参数 */
-export interface IGUESS{
+export interface IGuess{
     id:string,
     title:string,
     image:string,
 }
+/**定义一个接收首页列表参数的入口，并导出这个参数以便于其他页面调用此参数 */
+export interface IChannel{
+    id:string,
+    title:string,
+    image:string,
+    remark:string,
+    played:string,
+    playing:string,
+}
 export interface HomeState {
     carousels:ICarousel[];//存储轮播图数据
-    guess:IGUESS[],//存储猜你喜欢数据
+    guess:IGuess[],//存储猜你喜欢数据
+    channels:IChannel[],//存储首页列表数据
 }
 /**声明一个接收参数的方法 */
 interface homeModel extends Model{
@@ -33,12 +46,15 @@ interface homeModel extends Model{
     effects: {
         fetchCarousels:Effect,//定义轮播图的函数
         fetchGuess:Effect,//定义猜你喜欢的函数
+        fetchChannels:Effect,//定义首页列表函数
     };
     // subscriptions?: SubscriptionsMapObject;
 }
-const initialState = {
+/** 初始state的类型为HomeState*/
+const initialState:HomeState = {
     carousels:[],//轮播图数组默认值为空数组
     guess:[],//猜你喜欢数组，默认为空数组
+    channels:[],//首页列表数据，默认为空数组
 }
 const homeModel:homeModel = {
     namespace: 'home',
@@ -70,6 +86,7 @@ const homeModel:homeModel = {
                 },
             });
         },
+        /**首页猜你喜欢列表 */
         *fetchGuess(_,{call,put}){
             const {data} = yield call(axios.get,GUESS_URL);
             console.log('猜你喜欢数据',data)
@@ -78,6 +95,17 @@ const homeModel:homeModel = {
                 payload:{//payload更新guess数据
                     guess:data, 
                 },
+            })
+        },
+        //首页列表
+        *fetchChannels(_,{call,put}){
+            const {data} = yield call(axios.get,CHANNEL_URL);
+            console.log('首页列表数据',data);
+            yield put({
+                type:'setState',
+                payload:{
+                    channels:data.results,
+                }
             })
         }
     }
