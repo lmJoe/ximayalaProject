@@ -1,6 +1,7 @@
 import {Model, Effect} from 'dva-core-ts';
 import { Reducer } from 'redux';
 import axios from 'axios';
+import { RootState } from '.';
 //轮播图接口
 const CAROUSEL_URL = '/mock/11/xmlaApi/carousel';
 //猜你喜欢接口
@@ -29,10 +30,17 @@ export interface IChannel{
     played:string,
     playing:string,
 }
+/**声明一个接收参数的入口 */
+export interface IPagination{
+    current:number;
+    total:number,
+    hasMore:boolean;//用来判断是否还需要加载下一页的状态值
+}
 export interface HomeState {
     carousels:ICarousel[];//存储轮播图数据
     guess:IGuess[],//存储猜你喜欢数据
     channels:IChannel[],//存储首页列表数据
+    pagination:IPagination;
 }
 /**声明一个接收参数的方法 */
 interface homeModel extends Model{
@@ -55,6 +63,11 @@ const initialState:HomeState = {
     carousels:[],//轮播图数组默认值为空数组
     guess:[],//猜你喜欢数组，默认为空数组
     channels:[],//首页列表数据，默认为空数组
+    pagination:{
+        current:1,
+        total:0,
+        hasMore:true,
+    }
 }
 const homeModel:homeModel = {
     namespace: 'home',
@@ -97,16 +110,48 @@ const homeModel:homeModel = {
                 },
             })
         },
-        //首页列表
-        *fetchChannels(_,{call,put}){
-            const {data} = yield call(axios.get,CHANNEL_URL);
+        /**首页列表
+         * 此处的入参callback则为首页列表下拉刷新时传递过来的一个回调函数值
+         * payload为首页里列表上拉加载时传递过来的参数
+         * 拿到之前已请求出来的channels数据，select作用就是拿到所有的state.home
+         * call中第三个参数为请求接口入参
+         */
+        *fetchChannels({callback,payload},{call,put,select}){
+            const {channels,pagination} = yield select((state:RootState)=>state.home)
+            //如果存在的话则将当前的页码加1
+            let page = 1;
+            if(payload && payload.loadMore){
+                console.log('当前页码',pagination);
+                page = pagination.current + 1;
+            }
+            const {data} = yield call(axios.get,CHANNEL_URL,{
+                params:{
+                    page,
+                },
+            });
             console.log('首页列表数据',data);
+            //如果payload和payload.loadMore为true,则加载更多需要拼接
+            let newChannels = data.results;
+            if(payload && payload.loadMore){
+                newChannels = channels.concat(newChannels);
+            }
+            //使用setState更改state中的状态值
             yield put({
                 type:'setState',
                 payload:{
-                    channels:data.results,
+                    channels:newChannels,
+                    pagination:{
+                        current:data.pagination.current,
+                        total:data.pagination.total,
+                        //如果当前增加的分页数量小于分页总数量
+                        hasMore:newChannels.length < data.pagination.total,
+                    }
                 }
             })
+            //判断callback是否是一个函数
+            if(typeof callback === 'function'){
+                callback();
+            }
         }
     }
 }

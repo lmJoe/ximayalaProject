@@ -8,14 +8,14 @@ axios.interceptors.request.use(function(config){
     config.headers = {
         icode:'EB55BA7A6492A03A',
     }
-    console.log('请求config',config);
+    // console.log('请求config',config);
     return config;
 },function(error){
     return Promise.reject(error);
 });
 //响应拦截器设置
 axios.interceptors.response.use(function(response){
-    console.log('响应数据',response);
+    // console.log('响应数据',response);
     return response.data;
 },function(error){
     return Promise.reject(error);

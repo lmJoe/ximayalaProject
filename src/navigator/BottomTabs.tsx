@@ -47,11 +47,26 @@ class BottomTabs extends React.Component<IProps> {
      * componentDidMount生命周期只会在当前组件渲染完成后渲染一次
      * componentDidUpdate
      *  */
+    componentDidMount(){
+        this.setOptions();
+    }
     componentDidUpdate(){
+        this.setOptions();
+    }
+    setOptions = () => {
         const {navigation,route} = this.props;
-        navigation.setOptions({
-            headerTitle:getHeaderTitle(route)
-        })
+        const routeName = getFocusedRouteNameFromRoute(route);
+        if(routeName === 'HomeTabs'){
+            navigation.setOptions({
+                headerTransparent:true,//让标题栏透明
+                headerTitle:'',//设置标题getHeaderTitle(route)
+            })
+        }else{
+            navigation.setOptions({
+                headerTransparent:false,//让标题栏透明
+                headerTitle:getHeaderTitle(route),//设置标题
+            })
+        }
     }
     render () {
         return (

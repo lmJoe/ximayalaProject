@@ -1,13 +1,23 @@
 import React from 'react';
-import {createMaterialTopTabNavigator} from '@react-navigation/material-top-tabs';
+import {createMaterialTopTabNavigator, MaterialTopTabBar,MaterialTopTabBarProps} from '@react-navigation/material-top-tabs';
 import Home from '@/pages/Home';
+import TopTabBarWrapper from '@/pages/views/TopTabBarWrapper';
+
+
+
 const Tab = createMaterialTopTabNavigator();
 class HomeTabs extends React.Component{
+    renderTabBar = (props:MaterialTopTabBarProps) => {
+        //自定义的顶部标签栏
+        //将props中的每一项都作为MaterialTopTabBar组件的属性传入
+        return <TopTabBarWrapper {...props}/>
+    }
     render(){
         return (
             <Tab.Navigator
                 /**懒加载 */
                 lazy={true}
+                tabBar={this.renderTabBar} //自定义一个顶部标签，可以接收一个函数返回一个组件
                 tabBarOptions={{
                     scrollEnabled:true,//滚动设置
                     tabStyle:{

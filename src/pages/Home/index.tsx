@@ -1,5 +1,5 @@
 import React from 'react';
-import { View,FlatList, ListRenderItemInfo } from 'react-native';
+import { View,FlatList, ListRenderItemInfo,Text, StyleSheet } from 'react-native';
 import { RootStackNavigation } from '../../navigator';
 /**使用connect获取到models文件中home文件中定义的num */
 import { connect, ConnectedProps } from 'react-redux';
@@ -22,10 +22,12 @@ import { IChannel } from '@/models/home';
  * state类型就是在models里index中定义的RootState的类别
 */
 const mapStateToProps = ({home,loading}:RootState) =>{
+    console.log("loading值",loading)
     return {
         carousels:home.carousels,//carousels为models文件夹中home中的carousels值即获取到轮播列表的数组
         channels:home.channels,//channels为models文件中home中的channels值即获取到首页列表的数组
-        loading:loading.effects['home/fetchCarousels'],//次数的effects为models文件夹中home文件的effects对象里所有定义的方法
+        hasMore:home.pagination.hasMore,//hasMore为models文件中home中的hasMore即是否需要上拉加载判断值
+        loading:loading.effects['home/fetchChannels'],//次数的effects为models文件夹中home文件的effects对象里所有定义的方法
     }
     
 }
@@ -41,7 +43,14 @@ type modelState = ConnectedProps<typeof connector>
 interface IProps extends modelState{
     navigation:RootStackNavigation,
 }
-class Home extends React.Component<IProps>{
+/**声明一个接收参数的接口 */
+interface IState{
+    refreshing:boolean;
+}
+class Home extends React.Component<IProps,IState>{
+    state = {
+        refreshing:false,
+    }
     //调用action出发接口请求，调用models文件夹中home文件的fetchCarousels方法
     componentDidMount(){
         const { dispatch } = this.props;
@@ -54,7 +63,7 @@ class Home extends React.Component<IProps>{
     }
     //接收从IChannel子组件传递来一个类型为IChannel的参数data
     onPress = (data:IChannel) => {
-        console.log('data值',data);
+        // console.log('data值',data);
     }  
     /**
      * keyExtractor函数作用帮助ChannelItme组件生成一个不重复的key,
@@ -64,6 +73,42 @@ class Home extends React.Component<IProps>{
      */
     keyExtractor = (item:IChannel) => {
         return item.id;
+    }
+    /**下拉刷新,在onRefresh中控制refreshing值
+     * 首先在调用onRefresh时将refreshing状态改为true
+     * 在数据传递过来后再将refreshing状态改为false
+     */
+    onRefresh = () => {
+      //1.修改刷新状态为true
+      this.setState({
+        refreshing:true,
+      })
+      //2.获取数据
+      const { dispatch } = this.props;
+      dispatch({
+          type:'home/fetchChannels',
+          callback:()=>{
+            //3.修改刷新状态为false  
+            this.setState({
+                refreshing:false,
+            })
+          }
+      })
+      
+    }
+    /**
+     * onEndReached 加载更多
+     */
+    onEndReached = () => {
+        const { dispatch,loading,hasMore } = this.props;
+        //如果当前状态为loading状态或hasMore为false
+        if(loading || !hasMore) return;
+        dispatch({
+            type:'home/fetchChannels',
+            payload:{
+                loadMore:true,
+            }
+        })
     }
     /**
      * renderItem可以接收一个参数，参数类型为ListRenderItemInfo
@@ -86,23 +131,65 @@ class Home extends React.Component<IProps>{
             </View>
         )
     }
-    
+    get footer() {
+        const {hasMore,loading,channels} = this.props;
+        if(!hasMore){
+            <View style={styles.end}>
+                <Text>我是有底线的...</Text>
+            </View>
+        }
+        if(loading&&hasMore&&channels.length>0){
+            <View style={styles.loading}>
+                <Text>正在加载中...</Text>
+            </View>
+        }
+    }
+    get empty(){
+        const {loading} = this.props;
+        if (loading) return;
+        return (
+            <View style={styles.empty}>
+                <Text>暂无数据</Text>
+            </View>
+        )
+    }
     render (){
         const {channels} = this.props;
+        const {refreshing} = this.state;
         /**
          * this.props;在此处使用this.props可以获取从其他组件传过来的参数
          * ListHeaderComponent属性可以接收函数,class,组件
          */
         return (
             <FlatList 
-                ListHeaderComponent={this.header} 
+                ListHeaderComponent={this.header}
+                ListFooterComponent={this.footer} 
+                ListEmptyComponent={this.empty}
                 data={channels} 
                 renderItem={this._renderItem}
                 keyExtractor = {this.keyExtractor} //keyExtractor接收一个函数
+                onRefresh = {this.onRefresh}//下拉刷新的属性
+                refreshing={refreshing}
+                onEndReached={this.onEndReached}//上拉到底部加载
+                onEndReachedThreshold={0.2} //决定内容距离底部还有多少去执行
             />
         )
     }
 }
+const styles = StyleSheet.create({
+    end:{
+        alignItems:'center',
+        paddingVertical:10,
+    },
+    loading:{
+        alignItems:'center',
+        paddingVertical:10,
+    },
+    empty:{
+        alignItems:'center',
+        paddingVertical:100,
+    }
+})
 /**connector最终为一个函数，这个函数会接收一个Home组件的参数
  * connector(Home)最终返回了一个新的组件，帮我们把Home组件重新加工
  * 给Home组件的props属性注入了导出来的对象num,如：
