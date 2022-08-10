@@ -1,10 +1,10 @@
 import React from 'react';
-import { View,FlatList, ListRenderItemInfo,Text, StyleSheet } from 'react-native';
+import { View,FlatList, ListRenderItemInfo,Text, StyleSheet, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
 import { RootStackNavigation } from '../../navigator';
 /**使用connect获取到models文件中home文件中定义的num */
 import { connect, ConnectedProps } from 'react-redux';
 import { RootState } from '@/models/index';
-import WCarousel from './Carousel';
+import WCarousel, { slidheight } from './Carousel';
 import Guess from './Guess';
 import ChannelItem from './ChannelItem';
 import { IChannel } from '@/models/home';
@@ -22,11 +22,11 @@ import { IChannel } from '@/models/home';
  * state类型就是在models里index中定义的RootState的类别
 */
 const mapStateToProps = ({home,loading}:RootState) =>{
-    console.log("loading值",loading)
     return {
         carousels:home.carousels,//carousels为models文件夹中home中的carousels值即获取到轮播列表的数组
         channels:home.channels,//channels为models文件中home中的channels值即获取到首页列表的数组
         hasMore:home.pagination.hasMore,//hasMore为models文件中home中的hasMore即是否需要上拉加载判断值
+        gradientVisible:home.gradientVisible,//获取从models文件中home中存储的gradientVisible值，并在当前界面进行业务操作
         loading:loading.effects['home/fetchChannels'],//次数的effects为models文件夹中home文件的effects对象里所有定义的方法
     }
     
@@ -121,12 +121,32 @@ class Home extends React.Component<IProps,IState>{
          */
         return <ChannelItem data={item} onPress={this.onPress}/>
     }
+    /**声明一个屏幕滚动函数
+     * 这个函数设置类型为NativeSyntheticEvent 这样可以拿到原生事件
+     */
+    onScroll = ({nativeEvent}:NativeSyntheticEvent<NativeScrollEvent>) =>{
+        //获取用户滚动的距离
+        const offsetY = nativeEvent.contentOffset.y;
+        //和轮播图高度进行比较
+        let newGradientVisible = offsetY < slidheight;
+        const {dispatch,gradientVisible} = this.props;
+        //如果以前的渐变色显示状态和现在最新的显示状态不一致再调用
+        if(gradientVisible !== newGradientVisible){
+            dispatch({
+                type:'home/setState',
+                payload:{
+                    gradientVisible:newGradientVisible,//传递渐变色显示的状态
+                }
+            })
+        }
+        
+    }
     /**使用get */
     get header(){
         const {carousels} = this.props;
         return (
             <View>
-                <WCarousel data={carousels}/>
+                <WCarousel />
                 <Guess />
             </View>
         )
@@ -172,6 +192,7 @@ class Home extends React.Component<IProps,IState>{
                 refreshing={refreshing}
                 onEndReached={this.onEndReached}//上拉到底部加载
                 onEndReachedThreshold={0.2} //决定内容距离底部还有多少去执行
+                onScroll={this.onScroll} //首页滚动的监听事件（此处用于滚动隐藏渐变色）
             />
         )
     }

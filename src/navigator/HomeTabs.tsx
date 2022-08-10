@@ -2,6 +2,7 @@ import React from 'react';
 import {createMaterialTopTabNavigator, MaterialTopTabBar,MaterialTopTabBarProps} from '@react-navigation/material-top-tabs';
 import Home from '@/pages/Home';
 import TopTabBarWrapper from '@/pages/views/TopTabBarWrapper';
+import { StyleSheet } from 'react-native';
 
 
 
@@ -18,6 +19,7 @@ class HomeTabs extends React.Component{
                 /**懒加载 */
                 lazy={true}
                 tabBar={this.renderTabBar} //自定义一个顶部标签，可以接收一个函数返回一个组件
+                sceneContainerStyle={styles.sceneContainerStyle}
                 tabBarOptions={{
                     scrollEnabled:true,//滚动设置
                     tabStyle:{
@@ -34,10 +36,23 @@ class HomeTabs extends React.Component{
                     activeTintColor:'#f86442',
                     inactiveTintColor:'#333',
                 }}
+                screenOptions={{
+                    tabBarStyle:{
+                        flex: 1,
+                        elevation: 0,
+                        overflow: 'hidden',
+                        backgroundColor: 'transparent', 
+                    }
+                }}
             >
                 <Tab.Screen name="Home" component={Home} options={{tabBarLabel:'推荐'}}/>
             </Tab.Navigator>
         )
     }
 }
+const styles = StyleSheet.create({
+    sceneContainerStyle:{
+        backgroundColor:'transparent',
+    },
+})
 export default HomeTabs;

@@ -11,6 +11,7 @@ const CHANNEL_URL = '/mock/11/xmlaApi/channel';
 
 /**定义一个接受轮播图参数的入口 并导出这个参数以便于其他页面调用此参数*/
 export interface ICarousel {
+    colors: any;
     id:string;
     image:string;
     color:[string,string];
@@ -36,11 +37,14 @@ export interface IPagination{
     total:number,
     hasMore:boolean;//用来判断是否还需要加载下一页的状态值
 }
+//存储dva数据
 export interface HomeState {
     carousels:ICarousel[];//存储轮播图数据
+    activeCarouselIndex:number,//存储当前显示的轮播图的下标
+    gradientVisible:boolean;//渐变色组件是否显示的状态
     guess:IGuess[],//存储猜你喜欢数据
     channels:IChannel[],//存储首页列表数据
-    pagination:IPagination;
+    pagination:IPagination;//存储首页里列表页码相关数据（主要是上拉加载用到）
 }
 /**声明一个接收参数的方法 */
 interface homeModel extends Model{
@@ -61,6 +65,8 @@ interface homeModel extends Model{
 /** 初始state的类型为HomeState*/
 const initialState:HomeState = {
     carousels:[],//轮播图数组默认值为空数组
+    activeCarouselIndex:0,//设置轮播图当前显示图的下标默认值
+    gradientVisible:true,//设置渐变色组件显示状态为true
     guess:[],//猜你喜欢数组，默认为空数组
     channels:[],//首页列表数据，默认为空数组
     pagination:{
