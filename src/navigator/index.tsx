@@ -8,11 +8,13 @@ import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator,HeaderStyleInterpolators,CardStyleInterpolators, StackNavigationProp} from '@react-navigation/stack';//引用了堆栈式导航器
 import BottomTabs from './BottomTabs';
 import Detail from '@/pages/Detail';
+import Category from '@/pages/Category';
 /**声明一个叫RootStackParamList的类型，此处的type是一个类型别名即给一个类型重新起一个名字 */
 export type RootStackParamList = {
     BottomTabs:{
         screen?:string
     },
+    Category:undefined,
     Detail:{
         id:number,
     },
@@ -48,7 +50,13 @@ class Navigator extends React.Component{
                     cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,//页面跳转动画
                     gestureEnabled: true,//手势开启
                     gestureDirection: 'horizontal',//设置手势为左右方向
-                    headerStatusBarHeight:StatusBar.currentHeight,//状态栏的高度
+                    ...Platform.select({
+                        android:{
+                            headerStatusBarHeight:StatusBar.currentHeight,//状态栏的高度
+                        }
+                    }),//解决react0.61.5版本StatusBar.currentHeight返回的为undefined.0.62以上为null
+                    headerBackTitleVisible:false,//页面返回按钮显示状态
+                    headerTintColor:'#333',//标题颜色，修改标题和返回按钮的颜色
                     headerStyle: {
                         // backgroundColor: "#dedede",//标题栏颜色
                         ...Platform.select({
@@ -62,6 +70,10 @@ class Navigator extends React.Component{
                     <Stack.Screen name="BottomTabs" component={BottomTabs} options={{
                         headerTitle:'首页',
                     }}/>
+                    <Stack.Screen name="Category" component={Category} options={{
+                        headerTitle:'分类',
+                    }}/>
+                    
                     <Stack.Screen options={{
                         headerTitle:'详情页'
                         }}

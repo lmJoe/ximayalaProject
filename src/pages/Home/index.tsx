@@ -147,7 +147,10 @@ class Home extends React.Component<IProps,IState>{
         return (
             <View>
                 <WCarousel />
-                <Guess />
+                <View style={styles.background}>
+                    <Guess />
+                </View>
+                
             </View>
         )
     }
@@ -209,6 +212,9 @@ const styles = StyleSheet.create({
     empty:{
         alignItems:'center',
         paddingVertical:100,
+    },
+    background:{
+        backgroundColor:'#fff',
     }
 })
 /**connector最终为一个函数，这个函数会接收一个Home组件的参数
