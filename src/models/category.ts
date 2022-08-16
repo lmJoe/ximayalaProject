@@ -89,8 +89,16 @@ const CategoryModel:CategoryModel = {
                 type:'setState',
                 payload:{
                     isEdit: !category.isEdit,
+                    myCategorys:payload.myCategorys,//也要将保存到dva仓库中
                 }
             })
+            //如果当前的编辑按钮处于编辑状态,才会把数据保存起来
+            if(category.isEdit){
+                storage.save({
+                    key:'myCategorys',
+                    data:payload.myCategorys,
+                })
+            }
         }
     },
     reducers:{

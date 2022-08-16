@@ -27,7 +27,8 @@ interface IPorps extends ModelState{
 interface IState {
     myCategorys:ICategory[];
 }
-
+/**定义一个数组，用于帮助分类界面中我的分类里两项默认分类不被删除 */
+const fixedItems = [0,1];
 class Category extends React.Component<IPorps,IState>{
     state ={
         myCategorys:this.props.myCategorys,
@@ -51,8 +52,15 @@ class Category extends React.Component<IPorps,IState>{
     }
     onSubmit = () => {
         const {dispatch} = this.props;
+        /**点击保存时，传递过去
+         * 先从this.state中获取当前组件内部状态里面的myCategorys
+         */
+        const {myCategorys} = this.state;
         dispatch({
             type:'category/toggle',//调用category中toggle的函数
+            payload:{
+                myCategorys,
+            }
         })
     }
     //onLongPress长按时间
@@ -66,21 +74,39 @@ class Category extends React.Component<IPorps,IState>{
         })
     }
     //onPress增加类别
-    onPress = (item: ICategory,index: number) => {
+    onPress = (item: ICategory,index: number,selected:boolean) => {
         //首先判断当前类别点击项是否为编辑状态或未编辑状态
         const {isEdit} = this.props;
         const {myCategorys} = this.state;
+        const disabled = fixedItems.indexOf(index)>-1;
+        if(disabled) return;
         if(isEdit){
-            //修改dva中myCategorys数据,点击时需要将合并成一个新的数组
-            this.setState({
-                myCategorys:myCategorys.concat([item]),
-            })
+            if(selected){
+                //修改dva中myCategorys数据,删除时需要将返回一个新的数组
+                this.setState({
+                    myCategorys:myCategorys.filter(selectedItem => selectedItem.id !== item.id),
+                })
+            }else{
+                //修改dva中myCategorys数据,点击时需要将合并成一个新的数组
+                this.setState({
+                    myCategorys:myCategorys.concat([item]),
+                })
+            }
+            
         }
     }
     renderItem = (item: ICategory,index: number) => {
         const {isEdit} = this.props;
+        const disabled = fixedItems.indexOf(index)>-1;
         //注入Item组件,并将从dva取出接口获取的数据以及isEdit值传递过去
-        return <Item key = {item.id} data={item} isEdit={isEdit} selected/>
+        return (
+            <Touchable 
+                key={item.id}
+                onPress={() => this.onPress(item,index,true)}
+                onLongPress={this.onLongPress}>
+                <Item key={item.id} data={item} disabled={disabled} isEdit={isEdit} selected/>
+            </Touchable>
+        )
     }
     renderUnSelectedItem = (item: ICategory,index: number) => {
         const {isEdit} = this.props;

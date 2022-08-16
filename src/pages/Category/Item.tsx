@@ -6,19 +6,21 @@ interface IProps{
     isEdit:boolean;//代表编辑还是完成状态
     selected:boolean;//代表当前是否是已选择的状态
     data:ICategory;
+    disabled:boolean;
 }
 //计算每个类别所占用的宽度
 const parentWidth = viewportWidth - 10;
 const itemWidth = parentWidth / 4;
 class Item extends React.Component<IProps> {
     render(){
-        const {data,isEdit,selected} = this.props;
+        const {data,isEdit,selected,disabled} = this.props;
         return (
             <View key={data.id} style={styles.itemWrapper}>
-                <View style={styles.item}>
+                <View style={[styles.item,disabled&&styles.disabled]}>
                     <Text>{data.name}</Text>
                     {
-                        isEdit && (
+                        // 如果当前状态为可编辑并且disabled为false
+                        isEdit && !disabled &&(
                             <View style={styles.icon}>
                                 <Text style={styles.iconText}>{selected ? '-':'+'}</Text>
                             </View>
@@ -41,6 +43,9 @@ const styles = StyleSheet.create({
         justifyContent:'center',
         alignItems:'center',
         borderRadius:4,
+    },
+    disabled:{
+        backgroundColor:'#ccc',
     },
     icon:{
         position:'absolute',
