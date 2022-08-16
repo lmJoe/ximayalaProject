@@ -6,11 +6,13 @@ interface IProps{
     isEdit:boolean;//代表编辑还是完成状态
     selected:boolean;//代表当前是否是已选择的状态
     data:ICategory;
-    disabled:boolean;
+    disabled?:boolean;
 }
 //计算每个类别所占用的宽度
-const parentWidth = viewportWidth - 10;
-const itemWidth = parentWidth / 4;
+export const parentWidth = viewportWidth - 10;
+export const itemWidth = parentWidth / 4;
+export const itemHeight = 48;
+export const margin = 5;
 class Item extends React.Component<IProps> {
     render(){
         const {data,isEdit,selected,disabled} = this.props;
@@ -34,7 +36,7 @@ class Item extends React.Component<IProps> {
 const styles = StyleSheet.create({
     itemWrapper:{
         width:itemWidth,
-        height:48,
+        height:itemHeight,
     },
     item:{
         flex:1,

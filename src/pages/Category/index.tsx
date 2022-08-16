@@ -5,10 +5,14 @@ import Touchable from '@/components/Touchable';
 import { connect, ConnectedProps } from 'react-redux';
 import { ICategory } from '@/models/category';
 import { viewportWidth } from '@/utils/index';
+/**数据类型处理，当前文件处理了数据类型 */
 import _ from 'lodash';
-import Item from './Item';
+import Item, { itemWidth, itemHeight, margin, parentWidth } from './Item';
 import { RootStackNavigation } from '@/navigator/index';
+/**引入右上角编辑按钮组件 */
 import HeaderRightBtn from './HeaderRightBtn';
+/**引入拖拽、排序、自动滑动 react-native-drag-sort */
+import {DragSortableView} from 'react-native-drag-sort';
 const mapStateToProps = ({category}:RootState) => {
     return {
         myCategorys:category.myCategorys,
@@ -51,7 +55,7 @@ class Category extends React.Component<IPorps,IState>{
         }) 
     }
     onSubmit = () => {
-        const {dispatch} = this.props;
+        const {dispatch,navigation,isEdit} = this.props;
         /**点击保存时，传递过去
          * 先从this.state中获取当前组件内部状态里面的myCategorys
          */
@@ -61,7 +65,10 @@ class Category extends React.Component<IPorps,IState>{
             payload:{
                 myCategorys,
             }
-        })
+        });
+        if(isEdit){
+            navigation.goBack();
+        }
     }
     //onLongPress长按时间
     onLongPress = () => {
@@ -95,17 +102,29 @@ class Category extends React.Component<IPorps,IState>{
             
         }
     }
+    /**接收两个参数 data数据 item为data中的每一项 */
+    onClickItem = (data:ICategory[],item:ICategory) => {
+        //调用this.onPress trur为是否选中，都为true
+        this.onPress(item,data.indexOf(item),true)
+    }
+    onDataChange = (data:ICategory[]) =>{
+        //此处的data是已经在拖拽组件计算好之后排序后的
+        this.setState({
+            myCategorys:data,
+        })
+    }
     renderItem = (item: ICategory,index: number) => {
         const {isEdit} = this.props;
         const disabled = fixedItems.indexOf(index)>-1;
         //注入Item组件,并将从dva取出接口获取的数据以及isEdit值传递过去
         return (
-            <Touchable 
-                key={item.id}
-                onPress={() => this.onPress(item,index,true)}
-                onLongPress={this.onLongPress}>
-                <Item key={item.id} data={item} disabled={disabled} isEdit={isEdit} selected/>
-            </Touchable>
+            <Item 
+                key={item.id} 
+                data={item} 
+                disabled={disabled} 
+                isEdit={isEdit} 
+                selected
+            />  
         )
     }
     renderUnSelectedItem = (item: ICategory,index: number) => {
@@ -119,14 +138,27 @@ class Category extends React.Component<IPorps,IState>{
         
     }
     render (){
-        const {categorys} = this.props;//拿到所有的类别
+        const {categorys,isEdit} = this.props;//拿到所有的类别
         const {myCategorys} = this.state;//拿到用户选择的类别
         const classifyGroup = _.groupBy(categorys,(item) => item.classify);
         return (
             <ScrollView style={styles.container}>
                 <Text>我的分类</Text>
                 <View style={styles.classifyView}>
-                    {myCategorys.map(this.renderItem)}
+                     {/* DragSortableView组件需要接收一个 */}
+                    <DragSortableView
+                        dataSource={myCategorys}
+                        fixedItems={fixedItems} //数值为fixedItems中的不可拖拽
+                        renderItem={this.renderItem}
+                        sortable={isEdit} //状态，在编辑状态下进行拖拽
+                        keyExtractor={item=>item.id}
+                        onDataChange={this.onDataChange}//进行拖拽之后的回调
+                        parentWidth={parentWidth}
+                        childrenWidth={itemWidth}
+                        childrenHeight={itemHeight}
+                        marginChildrenTop={margin}
+                        onClickItem={this.onClickItem}
+                    />
                 </View>
                 <View>
                     {

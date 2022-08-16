@@ -7,14 +7,17 @@ import LinearAnimatedGradientTransition from 'react-native-linear-animated-gradi
 import { StyleSheet } from 'react-native';
 import { RootState } from '@/models/index';
 import { connect, ConnectedProps } from 'react-redux';
+import { getActiveRouteName } from '@/utils/index';
 //声明一个mapStateTopProps从home中获取
-const mapStateTopProps = ({home}:RootState) => {
+const mapStateTopProps = (state:RootState,props:MaterialTopTabBarProps) => {
+    const routeName = getActiveRouteName(props.state);
+    const ModelState = state[routeName];
     return {
         //获取
-        gradientVisible:home.gradientVisible,//获取从models文件中home中存储的gradientVisible值，并在当前界面进行业务操作
+        gradientVisible:ModelState.gradientVisible,//获取从models文件中home中存储的gradientVisible值，并在当前界面进行业务操作
         //获取和轮播图图片在同一个对象里面的颜色，这个颜色是从接口中获取的
-        LinearColors:home.carousels.length
-                    ?(home.carousels[home.activeCarouselIndex]?home.carousels[home.activeCarouselIndex].colors:undefined)
+        LinearColors:ModelState.carousels.length
+                    ?(ModelState.carousels[ModelState.activeCarouselIndex]?ModelState.carousels[ModelState.activeCarouselIndex].colors:undefined)
                     :undefined,
     }
 }

@@ -14,14 +14,17 @@ const mapStateToProps = ({home}:RootState) => {
 const connector = connect(mapStateToProps);
 //获取从connector中返回的值
 type ModelsState = ConnectedProps<typeof connector>;
-class Guess extends React.Component<ModelsState>{
+interface IProps extends ModelsState {
+    namespace:string;
+}
+class Guess extends React.Component<IProps>{
     componentDidMount() {
         this.fetch();
     }
     fetch = () => {
-        const {dispatch} = this.props;
+        const {dispatch,namespace} = this.props;
         dispatch({
-            type:'home/fetchGuess',
+            type:namespace+'/fetchGuess',
         });//dispatch刷新action中类型为type的数据值
     }
     _renderItem = ({item}:{item:IGuess}) => {

@@ -8,6 +8,8 @@ import WCarousel, { slidheight } from './Carousel';
 import Guess from './Guess';
 import ChannelItem from './ChannelItem';
 import { IChannel } from '@/models/home';
+import { HomeParamList } from '@/navigator/HomeTabs';
+import { RouteProp } from '@react-navigation/native';
 
 /**
  * connect本身是一个函数，可以接收一个函数，同时也返回一个函数，用来帮我们
@@ -21,13 +23,17 @@ import { IChannel } from '@/models/home';
  * 拿到store,所以从home组件中可以拿到仓库，所以connect就能知道store里面的state属性
  * state类型就是在models里index中定义的RootState的类别
 */
-const mapStateToProps = ({home,loading}:RootState) =>{
+const mapStateToProps = (state:RootState,{route}:{route:RouteProp<HomeParamList,string>}) =>{
+    const {namespace} = route.params;
+        //根据namespace获取对应的model
+    const modelState = state[namespace];
     return {
-        carousels:home.carousels,//carousels为models文件夹中home中的carousels值即获取到轮播列表的数组
-        channels:home.channels,//channels为models文件中home中的channels值即获取到首页列表的数组
-        hasMore:home.pagination.hasMore,//hasMore为models文件中home中的hasMore即是否需要上拉加载判断值
-        gradientVisible:home.gradientVisible,//获取从models文件中home中存储的gradientVisible值，并在当前界面进行业务操作
-        loading:loading.effects['home/fetchChannels'],//次数的effects为models文件夹中home文件的effects对象里所有定义的方法
+        namespace,
+        carousels:modelState.carousels,//carousels为models文件夹中home中的carousels值即获取到轮播列表的数组
+        channels:modelState.channels,//channels为models文件中home中的channels值即获取到首页列表的数组
+        hasMore:modelState.pagination.hasMore,//hasMore为models文件中home中的hasMore即是否需要上拉加载判断值
+        gradientVisible:modelState.gradientVisible,//获取从models文件中home中存储的gradientVisible值，并在当前界面进行业务操作
+        loading:state.loading.effects[namespace+'/fetchChannels'],//次数的effects为models文件夹中home文件的effects对象里所有定义的方法
     }
     
 }
@@ -53,12 +59,12 @@ class Home extends React.Component<IProps,IState>{
     }
     //调用action出发接口请求，调用models文件夹中home文件的fetchCarousels方法
     componentDidMount(){
-        const { dispatch } = this.props;
+        const { dispatch,namespace } = this.props;
         dispatch({
-            type:'home/fetchCarousels',
+            type:namespace+'/fetchCarousels',
         });
         dispatch({
-            type:'home/fetchChannels',
+            type:namespace+'/fetchChannels',
         })
     }
     //接收从IChannel子组件传递来一个类型为IChannel的参数data
@@ -84,9 +90,9 @@ class Home extends React.Component<IProps,IState>{
         refreshing:true,
       })
       //2.获取数据
-      const { dispatch } = this.props;
+      const { dispatch,namespace } = this.props;
       dispatch({
-          type:'home/fetchChannels',
+          type:namespace+'/fetchChannels',
           callback:()=>{
             //3.修改刷新状态为false  
             this.setState({
@@ -100,11 +106,11 @@ class Home extends React.Component<IProps,IState>{
      * onEndReached 加载更多
      */
     onEndReached = () => {
-        const { dispatch,loading,hasMore } = this.props;
+        const { dispatch,loading,hasMore,namespace } = this.props;
         //如果当前状态为loading状态或hasMore为false
         if(loading || !hasMore) return;
         dispatch({
-            type:'home/fetchChannels',
+            type:namespace+'/fetchChannels',
             payload:{
                 loadMore:true,
             }
@@ -129,11 +135,11 @@ class Home extends React.Component<IProps,IState>{
         const offsetY = nativeEvent.contentOffset.y;
         //和轮播图高度进行比较
         let newGradientVisible = offsetY < slidheight;
-        const {dispatch,gradientVisible} = this.props;
+        const {dispatch,gradientVisible,namespace} = this.props;
         //如果以前的渐变色显示状态和现在最新的显示状态不一致再调用
         if(gradientVisible !== newGradientVisible){
             dispatch({
-                type:'home/setState',
+                type:namespace+'/setState',
                 payload:{
                     gradientVisible:newGradientVisible,//传递渐变色显示的状态
                 }
@@ -143,12 +149,12 @@ class Home extends React.Component<IProps,IState>{
     }
     /**使用get */
     get header(){
-        const {carousels} = this.props;
+        const {namespace} = this.props;
         return (
             <View>
                 <WCarousel />
                 <View style={styles.background}>
-                    <Guess />
+                    <Guess namespace={namespace}/>
                 </View>
                 
             </View>
