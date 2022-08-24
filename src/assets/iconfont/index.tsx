@@ -11,6 +11,8 @@ import HomeTwo from './HomeTwo';
 import CollectionRecords from './CollectionRecords';
 import Refresh from './Refresh';
 import Right from './Right';
+import Headset from './Headset';
+import Time from './Time';
 export { default as Avatar } from './Avatar';
 export { default as MusicMenu } from './MusicMenu';
 export { default as MusicCd } from './MusicCd';
@@ -18,8 +20,10 @@ export { default as HomeTwo } from './HomeTwo';
 export { default as CollectionRecords } from './CollectionRecords';
 export { default as Refresh } from './Refresh';
 export { default as Right } from './Right';
+export { default as Headset } from './Headset';
+export { default as Time } from './Time';
 
-export type IconNames = 'avatar' | 'music-menu' | 'music-cd' | 'home-two' | 'collection-records' | 'refresh' | 'right';
+export type IconNames = 'avatar' | 'music-menu' | 'music-cd' | 'home-two' | 'collection-records' | 'refresh' | 'right' | 'headset' | 'time';
 
 interface Props extends GProps, ViewProps {
   name: IconNames;
@@ -43,6 +47,10 @@ let IconFont: FunctionComponent<Props> = ({ name, ...rest }) => {
       return <Refresh key="6" {...rest} />;
     case 'right':
       return <Right key="7" {...rest} />;
+    case 'headset':
+      return <Headset key="8" {...rest} />;
+    case 'time':
+      return <Time key="9" {...rest} />;
   }
 
   return null;

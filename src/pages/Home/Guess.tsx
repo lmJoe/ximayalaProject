@@ -16,6 +16,7 @@ const connector = connect(mapStateToProps);
 type ModelsState = ConnectedProps<typeof connector>;
 interface IProps extends ModelsState {
     namespace:string;
+    goAlbum:(item:IGuess) => void;
 }
 class Guess extends React.Component<IProps>{
     componentDidMount() {
@@ -28,11 +29,11 @@ class Guess extends React.Component<IProps>{
         });//dispatch刷新action中类型为type的数据值
     }
     _renderItem = ({item}:{item:IGuess}) => {
-
+        const {goAlbum} = this.props;
         return (
             <Touchable style={styles.item}
-                onPressonPress={()=>{
-                    alert('点击');
+                onPress={()=>{
+                    goAlbum(item);
                 }}
             >
                 <Image 

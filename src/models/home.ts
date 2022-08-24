@@ -107,7 +107,7 @@ const homeModel:homeModel = {
         },
         /**首页猜你喜欢列表 */
         *fetchGuess(_,{call,put}){
-            const {data} = yield call(axios.get,GUESS_URL);
+            const {data} = yield call(axios.get,GUESS_URL); 
             console.log('猜你喜欢数据',data)
             yield put({
                 type:'setState',

@@ -7,7 +7,7 @@ import { RootState } from '@/models/index';
 import WCarousel, { slidheight } from './Carousel';
 import Guess from './Guess';
 import ChannelItem from './ChannelItem';
-import { IChannel } from '@/models/home';
+import { IChannel, IGuess } from '@/models/home';
 import { HomeParamList } from '@/navigator/HomeTabs';
 import { RouteProp } from '@react-navigation/native';
 
@@ -68,8 +68,12 @@ class Home extends React.Component<IProps,IState>{
         })
     }
     //接收从IChannel子组件传递来一个类型为IChannel的参数data
-    onPress = (data:IChannel) => {
-        // console.log('data值',data);
+    goAlbum = (data:IChannel | IGuess) => {
+        const {navigation} = this.props;
+        /**跳转并传递参数
+         * item为传递的参数
+         */
+        navigation.navigate('Album',{item:data});
     }  
     /**
      * keyExtractor函数作用帮助ChannelItme组件生成一个不重复的key,
@@ -125,7 +129,7 @@ class Home extends React.Component<IProps,IState>{
         /**由于channelItem组件中除了data 还接收了一个onPress组件
          * 因此次数除了传递data,还有一个onPress函数
          */
-        return <ChannelItem data={item} onPress={this.onPress}/>
+        return <ChannelItem data={item} onPress={this.goAlbum}/>
     }
     /**声明一个屏幕滚动函数
      * 这个函数设置类型为NativeSyntheticEvent 这样可以拿到原生事件
@@ -154,7 +158,7 @@ class Home extends React.Component<IProps,IState>{
             <View>
                 <WCarousel />
                 <View style={styles.background}>
-                    <Guess namespace={namespace}/>
+                    <Guess namespace={namespace} goAlbum={this.goAlbum}/>
                 </View>
                 
             </View>

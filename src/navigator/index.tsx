@@ -1,22 +1,26 @@
 import React from 'react';
-import { View, Text,Platform,StyleSheet, StatusBar } from 'react-native';
+import { View, Text,Platform,StyleSheet, StatusBar, Animated } from 'react-native';
 /**
  * NavigationContainer 是管理整个的导航素并包含导航状态的组件
  * createStackNavigator 是一个返回包含两个属性的对象的函数
  */
-import {NavigationContainer} from '@react-navigation/native';
+import {NavigationContainer, RouteProp} from '@react-navigation/native';
 import {createStackNavigator,HeaderStyleInterpolators,CardStyleInterpolators, StackNavigationProp} from '@react-navigation/stack';//引用了堆栈式导航器
 import BottomTabs from './BottomTabs';
-import Detail from '@/pages/Detail';
 import Category from '@/pages/Category';
+import Album from '@/pages/Album';
 /**声明一个叫RootStackParamList的类型，此处的type是一个类型别名即给一个类型重新起一个名字 */
 export type RootStackParamList = {
     BottomTabs:{
         screen?:string
     },
     Category:undefined,
-    Detail:{
-        id:number,
+    Album:{
+        item:{
+            id:string,
+            title:string,
+            image:string,
+        }
     },
 }
 /**
@@ -29,6 +33,32 @@ export type RootStackParamList = {
 
 /**createStackNavigator这个函数本身是可以接收一个泛型的，即将RootStackParamList作为泛型传入到createStackNavigator中  */
 let Stack = createStackNavigator<RootStackParamList>();
+/**
+ * getAlbumOptions接收一个类型为RouteProp的参数route,
+ * 当前参数有一个泛型 RootStackNavigation和跳转到哪个页面的参数Album
+ */
+function getAlbumOptions({route}:{
+    route:RouteProp<RootStackParamList,'Album'>
+}){
+    /**
+     * 返回频道页面的配置
+     * headerTitle：标题栏标题
+     * headerTransparent: 标题栏透明效果
+     * headerTitleStyle:头部标题栏样式
+     */
+    return {
+        headerTitle:route.params.item.title,
+        headerTransparent:true,
+        headerTitleStyle:{
+            opacity:0,
+        },
+        headerBackground:()=>{
+            return (
+                <Animated.View style={styles.headerBackground} />
+            )
+        }
+    }
+}
 /**
  * 返回的两个属性
  * Navigator 导航器的组件
@@ -74,13 +104,21 @@ class Navigator extends React.Component{
                         headerTitle:'分类',
                     }}/>
                     
-                    <Stack.Screen options={{
-                        headerTitle:'详情页'
-                        }}
-                        name="Detail" component={Detail}/>
+                    <Stack.Screen
+                        name="Album" 
+                        component={Album}
+                        options={getAlbumOptions} //传递一个函数
+                    />
                 </Stack.Navigator>
             </NavigationContainer>
         )
     }
 }
+const styles = StyleSheet.create({
+    headerBackground:{
+        flex:1,
+        backgroundColor:'#fff',
+        opacity:0,
+    }
+})
 export default Navigator;
